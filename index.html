@@ -150,13 +150,13 @@
 .login-card::before {
   content: '';
   position: absolute;
-  inset: -10px;
+  inset: -10px;                    /* ← 加大到 -10px 或更大 */
   background: conic-gradient(from 0deg at 50% 50%, 
-              #ff00c8, #00ff9d, #00c8ff, #ff00c8);
-  border-radius: 28px;
+              #ff00c8, #00ff9d, #00c8ff, #ff00c8);  /* ← 加了 at 50% 50% 让颜色更均匀 */
+  border-radius: 28px;             /* ← 同步加大圆角（20+8 或 20+10 都行） */
   z-index: -1;
   animation: rotate 10s linear infinite;
-  filter: blur(1px);
+  filter: blur(1px);               /* ← 加一点模糊，彻底消灭锯齿和余白 */
 }
 
 @keyframes rotate {
