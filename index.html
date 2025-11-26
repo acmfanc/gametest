@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>game</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    height: 100dvh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* overflow: hidden; */
+    touch-action: none;
+    user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #game {
+    position: relative;
+    width: 94vmin;
+    height: 94vmin;
+    max-width: 600px;
+    max-height: 600px;
+    margin-left: 75px;
+    /* login start */
+    display: none;  /* 登录成功后才显示 */
+    /* login end */
+  }
+  .circle {
+    position: absolute;
+    width: 15%;
+    height: 15%;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8.5vw;
+    font-weight: bold;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    z-index: 10;
+  }
+  @media (min-width: 500px) { .circle { font-size: 46px; } }
+
+  .count-3 { background: #ffeb3b !important; }
+  .count-5 { background: #f44336 !important; color: white !important; }
+
+  #ball {
+    position: absolute;
+    top: 45%; 
+    left: 40%;
+    width: 17%;
+    height: 17%;
+    margin: -8.5% 0 0 -8.5%;
+    background: radial-gradient(circle at 30% 30%, #fff, #e63946);
+    border-radius: 50%;
+    font-size: 11vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 20;
+    transition: transform 0.25s cubic-bezier(0.2,0.8,0.4,1);
+  }
+  @media (min-width: 500px) { #ball { font-size: 62px; } }
+
+  /* 魔法棒固定在足球下方，可长按拖动 */
+  #magicWand {
+    position: absolute;
+    top: 62%;
+    left: 40%;
+    transform: translateX(-50%);
+    width: 55px; height: 55px;
+    background: gold url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M19 3l-2.5 2.5L18 7l-1.5 1.5L19 11l2.5-2.5L20 7l1.5-1.5L19 3zM2 6l3 3 10 10 3-3L8 6 2 6z"/></svg>') center/70% no-repeat;
+    border-radius: 50%;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+    z-index: 30;
+    cursor: grab;
+  }
+  #magicWand:active { cursor: grabbing; }
+  #magicWand.dragging {
+    transform: translateX(-50%) scale(1.6);
+    box-shadow: 0 0 50px gold;
+    z-index: 200;
+  }
+
+  /* 全部清零按钮：固定距离屏幕底部28px，横竖屏都贴底 */
+  #resetAll {
+    position: fixed;           /* 关键：脱离游戏容器，固定在视口 */
+    bottom: 28px;              /* 距离屏幕底部固定28px */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 18px 50px;
+    background: #e91e63;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 19px;
+    font-weight: bold;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+    z-index: 1000;
+  }
+
+  .history {
+    position: absolute;
+    left: 50%;
+    top: 105%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #88c0ff;
+    white-space: nowrap;
+    pointer-events: none;
+    text-wrap: wrap;
+    width: 75px;
+  }
+  @media (min-width: 500px) { .history { font-size: 18px; } }
+
+  /* login start */
+  /* 登录框样式 */
+  #loginBox {
+    background: rgba(255,255,255,0.95);
+    color: #000;
+    padding: 40px 50px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    text-align: center;
+  }
+  #msg { color: red; margin-top: 10px; height: 20px; }
+  /* login end */
+</style>
+</head>
+<body>
+<!-- login start -->
+<!-- 登录框 -->
+<div id="loginBox">
+  <h2>请输入用户名和密码</h2>
+  <input type="text" id="username" placeholder="用户名" autocomplete="username">
+  <input type="password" id="password" placeholder="密码" autocomplete="current-password">
+  <button onclick="login()">登录</button>
+  <div id="msg"></div>
+</div>
+<!-- login end -->
+
+<div id="game">
+  <div class="circle" data-id="0" style="left: 40%; top: 95%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="1" style="left: 5%; top: 84%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="2" style="left: 5%; top: 55%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="3" style="left: 5%; top: 27%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="4" style="left: 25%; top: 7%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="5" style="left: 57%; top: 7%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="6" style="left: 75%; top: 27%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="7" style="left: 75%; top: 55%;"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="8" style="left: 75%; top: 84%;"><span>0</span><div class="history"></div></div>
+
+  <!--<div class="circle" data-id="0"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="1"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="2"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="3"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="4"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="5"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="6"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="7"><span>0</span><div class="history"></div></div>
+  <div class="circle" data-id="8"><span>0</span><div class="history"></div></div> -->
+
+  <div id="ball">&nbsp</div>
+  <div id="magicWand"></div>
+</div>
+
+<!-- 按钮脱离 #game，固定在屏幕底部 -->
+<button id="resetAll">clear all</button>
+
+<script>
+// 9个圆完美环形布局（写死位置）
+const centerX = 47, centerY = 50, radius = 45;
+document.querySelectorAll('.circle').forEach((c, i) => {
+  const angle = i * 40 + 90 ;
+  const rad = angle * Math.PI / 180;
+  // const left = centerX + radius * Math.cos(rad);
+  // const top  = centerY + radius * Math.sin(rad);
+  // c.style.left = left + '%';
+  // c.style.top  = top + '%';
+  // if (i == 2) {
+  //   c.style.left = '5%';
+  //   c.style.top = '56%';
+  // } else if (i == 7) {
+  //   c.style.left = '90%';
+  //   c.style.top = '56%';
+  // }
+  c.style.transform = 'translate(-50%, -50%)';
+});
+
+const circles = document.querySelectorAll('.circle');
+const ball = document.getElementById('ball');
+const magicWand = document.getElementById('magicWand');
+
+let counts = Array(9).fill(0);
+let histories = Array(9).fill().map(() => []);
+
+// 点击圆 +1
+circles.forEach((c, i) => {
+  const span = c.querySelector('span');
+  const hist = c.querySelector('.history');
+  const inc = e => { e.stopPropagation(); counts[i]++; span.textContent = counts[i];
+    c.classList.toggle('count-3', counts[i]>=3 && counts[i]<5);
+    c.classList.toggle('count-5', counts[i]>=5);
+  };
+  c.addEventListener('click', inc);
+  c.addEventListener('touchstart', e=>{e.preventDefault(); inc(e);});
+  c._updateHist = () => hist.textContent = histories[i].slice(-8).join(', ');
+});
+
+// 足球拖拽归零
+let dragging = false, sx, sy;
+['mousedown','touchstart'].forEach(ev=>ball.addEventListener(ev, e=>{
+  if(magicWand.classList.contains('dragging')) return;
+  dragging=true;
+  const t=e.type==='touchstart'?e.touches[0]:e;
+  sx=t.clientX; sy=t.clientY;
+  e.preventDefault();
+}));
+['mousemove','touchmove'].forEach(ev=>document.addEventListener(ev, e=>{
+  if(!dragging) return;
+  const t=e.type==='touchmove'?e.touches[0]:e;
+  ball.style.transform = `translate(${t.clientX-sx}px, ${t.clientY-sy}px)`;
+  e.preventDefault();
+}));
+['mouseup','touchend'].forEach(ev=>document.addEventListener(ev, ()=>{
+  if(!dragging) return;
+  dragging=false;
+  const r=ball.getBoundingClientRect();
+  const bx=r.left+r.width/2, by=r.top+r.height/2;
+  circles.forEach((c,i)=>{
+    const cr=c.getBoundingClientRect();
+    const dist=Math.hypot(bx-(cr.left+cr.width/2), by-(cr.top+cr.height/2));
+    if(dist<70){
+      if(counts[i]>0){ histories[i].push(counts[i]); if(histories[i].length>8) histories[i].shift(); c._updateHist(); }
+      counts[i]=0; c.querySelector('span').textContent='0'; c.classList.remove('count-3','count-5');
+    }
+  });
+  ball.style.transition='transform 0.45s ease';
+  ball.style.transform='translate(0,0)';
+  setTimeout(()=>ball.style.transition='',500);
+}));
+
+// 全部清零（直接清）
+document.getElementById('resetAll').onclick = () => {
+  counts.fill(0);
+  histories = Array(9).fill().map(()=>[]);
+  circles.forEach(c=>{
+    c.querySelector('span').textContent='0';
+    c.querySelector('.history').textContent='';
+    c.classList.remove('count-3','count-5');
+  });
+};
+
+// 魔法棒长按拖动清除
+let wand=false, wx, wy;
+['mousedown','touchstart'].forEach(ev=>magicWand.addEventListener(ev, e=>{
+  e.stopPropagation();
+  wand=true;
+  const t=e.type==='touchstart'?e.touches[0]:e;
+  wx=t.clientX; wy=t.clientY;
+  magicWand.classList.add('dragging');
+  e.preventDefault();
+}));
+['mousemove','touchmove'].forEach(ev=>document.addEventListener(ev, e=>{
+  if(!wand) return;
+  const t=e.type==='touchmove'?e.touches[0]:e;
+  magicWand.style.transform = `translate(${t.clientX-wx}px, ${t.clientY-wy}px) translateX(-50%)`;
+  e.preventDefault();
+}));
+['mouseup','touchend'].forEach(ev=>document.addEventListener(ev, ()=>{
+  if(!wand) return;
+  wand=false;
+
+  const r=magicWand.getBoundingClientRect();
+  const mx=r.left+36, my=r.top+36;
+
+  circles.forEach((c,i)=>{
+    const cr=c.getBoundingClientRect();
+    const dist=Math.hypot(mx-(cr.left+cr.width/2), my-(cr.top+cr.height/2));
+    if(dist<70){
+      counts[i]=0; histories[i]=[];
+      c.querySelector('span').textContent='0';
+      c.querySelector('.history').textContent='';
+      c.classList.remove('count-3','count-5');
+      c.style.transform='translate(-50%, -50%) scale(1.15)';
+      c.style.boxShadow='0 0 40px gold';
+      setTimeout(()=>{c.style.transform='translate(-50%, -50%)'; c.style.boxShadow='';},350);
+    }
+  });
+
+  magicWand.classList.remove('dragging');
+  magicWand.style.transition='all 0.4s ease';
+  magicWand.style.transform='translateX(-50%)';
+  setTimeout(()=>magicWand.style.transition='',450);
+}));
+</script>
+
+<!-- login start -->
+<!-- ================== 下面是认证代码（不要动）==================== -->
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<script>
+// ★★★★★ 只需要改这一行！把你的 users.csv 的 raw 链接粘过来 ★★★★★
+const CSV_URL = "https://raw.githubusercontent.com/acmfanc/gametest/main/users.csv";
+// 示例（你实际要换成自己的）：
+// const CSV_URL = "https://raw.githubusercontent.com/laotou-yyds/mysecretgame/main/users.csv";
+
+let users = [];
+
+async function loadUsers() {
+  try {
+    const r = await fetch(CSV_URL + '?t=' + Date.now()); // 防缓存
+    const text = await r.text();
+    const lines = text.trim().split('\n');
+    lines.slice(1).forEach(line => {  // 跳过标题行
+      const [username, hash, expire] = line.split(',');
+      if (username && hash) {
+        users.push({
+          username: username.trim(),
+          hash: hash.trim(),
+          expire: expire ? new Date(expire.trim()) : null
+        });
+      }
+    });
+  } catch(e) {
+    document.getElementById('msg').textContent = '加载账号失败，请检查 CSV 地址';
+  }
+}
+
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const msg = document.getElementById('msg');
+
+  if (!username || !password) {
+    msg.textContent = '请填写完整';
+    return;
+  }
+
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    msg.textContent = '用户名错误';
+    return;
+  }
+
+  // 检查有效期
+  if (user.expire && new Date() > user.expire) {
+    msg.textContent = '该账号已过期';
+    return;
+  }
+
+  // bcrypt 验证密码
+  const match = await bcrypt.compare(password, user.hash);
+  if (match) {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('game').style.display = 'block';
+    msg.textContent = '';
+  } else {
+    msg.textContent = '密码错误';
+  }
+}
+
+// 页面加载就去读取 CSV
+loadUsers();
+</script>
+<!-- login end -->
+</body>
+</html>
