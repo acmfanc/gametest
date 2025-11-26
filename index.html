@@ -150,12 +150,13 @@
 .login-card::before {
   content: '';
   position: absolute;
-  inset: -4px;
-  background: conic-gradient(from 0deg, #ff00c8, #00ff9d, #00c8ff, #ff00c8);
-  border-radius: 22px;
+  inset: -10px;
+  background: conic-gradient(from 0deg at 50% 50%, 
+              #ff00c8, #00ff9d, #00c8ff, #ff00c8);
+  border-radius: 28px;
   z-index: -1;
-  animation: rotate 8s linear infinite;
-  opacity: 0.8;
+  animation: rotate 10s linear infinite;
+  filter: blur(1px);
 }
 
 @keyframes rotate {
