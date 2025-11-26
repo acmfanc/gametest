@@ -1,4 +1,4 @@
 username,password_hash,expire
-admin,$2a$12$duVyzHMbPeQhZ6EldXUO5uIF9HZfyGEL9xlMAWBEwO2DHPOluVxLW,2099-12-31
-user01,$2a$12$duVyzHMbPeQhZ6EldXUO5uIF9HZfyGEL9xlMAWBEwO2DHPOluVxLW,2026-06-30
-test,$2a$12$duVyzHMbPeQhZ6EldXUO5uIF9HZfyGEL9xlMAWBEwO2DHPOluVxLW,2025-11-20
+admin,pbkdf2-sha256-100000-32-salt_for_simba-5d20b8575c9913764cf60a1b13d27a07,2099-12-31
+user01,pbkdf2-sha256-100000-32-salt_for_simba-5d20b8575c9913764cf60a1b13d27a07,2026-06-30
+test,pbkdf2-sha256-100000-32-salt_for_simba-5d20b8575c9913764cf60a1b13d27a07,2025-11-20
