@@ -167,10 +167,10 @@
 
   <div id="ball">&nbsp</div>
   <div id="magicWand"></div>
-</div>
 
-<!-- 按钮脱离 #game，固定在屏幕底部 -->
-<button id="resetAll">clear all</button>
+  <!-- 按钮脱离 #game，固定在屏幕底部 -->
+  <button id="resetAll">clear all</button>
+</div>
 
 <script>
 // 9个圆完美环形布局（写死位置）
@@ -301,13 +301,10 @@ let wand=false, wx, wy;
 </script>
 
 <!-- login start -->
-<!-- ================== 下面是认证代码（不要动）==================== -->
-<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<!-- ================== 下面是认证代码（已修复：用 PBKDF2，无需外部库）==================== -->
 <script>
-// ★★★★★ 只需要改这一行！把你的 users.csv 的 raw 链接粘过来 ★★★★★
+// ★★★★★ CSV URL 已正确，无需改 ★★★★★
 const CSV_URL = "https://raw.githubusercontent.com/acmfanc/gametest/main/users.csv";
-// 示例（你实际要换成自己的）：
-// const CSV_URL = "https://raw.githubusercontent.com/laotou-yyds/mysecretgame/main/users.csv";
 
 let users = [];
 
@@ -331,6 +328,25 @@ async function loadUsers() {
   }
 }
 
+// PBKDF2 密码验证函数（浏览器原生，无需库）
+async function verifyPassword(password, storedHash) {
+  const prefix = 'pbkdf2-sha256-100000-32-salt_for_simba-';
+  if (!storedHash.startsWith(prefix)) return false;
+  const expectedHash = storedHash.slice(prefix.length);
+  
+  const encoder = new TextEncoder();
+  const salt = encoder.encode('salt_for_simba');
+  const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+  const derivedBits = await crypto.subtle.deriveBits({
+    name: 'PBKDF2',
+    salt: salt,
+    iterations: 100000,
+    hash: 'SHA-256'
+  }, keyMaterial, 256);
+  const derivedHash = btoa(String.fromCharCode(...new Uint8Array(derivedBits)));
+  return derivedHash === expectedHash;
+}
+
 async function login() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
@@ -339,6 +355,12 @@ async function login() {
   if (!username || !password) {
     msg.textContent = '请填写完整';
     return;
+  }
+
+  if (!users.length) {
+    msg.textContent = '数据加载中...';
+    await loadUsers(); // 如果还没加载，尝试加载
+    return login(); // 重试
   }
 
   const user = users.find(u => u.username === username);
@@ -353,8 +375,8 @@ async function login() {
     return;
   }
 
-  // bcrypt 验证密码
-  const match = await bcrypt.compare(password, user.hash);
+  // PBKDF2 验证密码
+  const match = await verifyPassword(password, user.hash);
   if (match) {
     document.getElementById('loginBox').style.display = 'none';
     document.getElementById('game').style.display = 'block';
