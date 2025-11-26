@@ -119,28 +119,150 @@
   @media (min-width: 500px) { .history { font-size: 18px; } }
 
   /* login start */
-  /* 登录框样式 */
-  #loginBox {
-    background: rgba(255,255,255,0.95);
-    color: #000;
-    padding: 40px 50px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    text-align: center;
-  }
-  #msg { color: red; margin-top: 10px; height: 20px; }
+/* 登录框美化 - 毛玻璃 + 渐变边框 + 呼吸光效 */
+#loginBox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: all 0.4s;
+}
+
+.login-card {
+  width: 340px;
+  padding: 40px 35px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.25),
+    0 0 60px rgba(102,126,234,0.3);
+  border: 1px solid rgba(255,255,255,0.4);
+  position: relative;
+  overflow: hidden;
+  animation: float 6s ease-in-out infinite;
+}
+
+/* 彩虹呼吸边框 */
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: conic-gradient(from 0deg, #ff00c8, #00ff9d, #00c8ff, #ff00c8);
+  border-radius: 22px;
+  z-index: -1;
+  animation: rotate 8s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-12px); }
+}
+
+.login-card h2 {
+  text-align: center;
+  margin: 0 0 8px;
+  font-size: 26px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.input-group {
+  position: relative;
+  margin: 20px 0;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px 16px 14px 44px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(102,126,234,0.12);
+  font-size: 16px;
+  color: #333;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.input-group input:focus {
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.3);
+  transform: scale(1.02);
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #667eea;
+  pointer-events: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+}
+
+.login-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(102,126,234,0.5);
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
+}
+
+/* 手机端稍微收窄一点 */
+@media (max-width: 480px) {
+  .login-card { width: 90%; padding: 35px 25px; }
+}
   /* login end */
 </style>
 </head>
 <body>
 <!-- login start -->
-<!-- 登录框 -->
+<!-- 把你原来的 <div id="loginBox"> … </div> 整个替换成下面这段 -->
 <div id="loginBox">
-  <h2>请输入用户名和密码</h2>
-  <input type="text" id="username" placeholder="用户名" autocomplete="username">
-  <input type="password" id="password" placeholder="密码" autocomplete="current-password">
-  <button onclick="login()">登录</button>
-  <div id="msg"></div>
+  <div class="login-card">
+    <h2>欢迎进入游戏</h2>
+    <p style="margin:12px 0 20px; color:#555; font-size:14px;">请输入用户名和密码</p>
+    
+    <div class="input-group">
+      <input type="text" id="username" placeholder="用户名" autocomplete="username" required>
+      <span class="input-icon">User</span>
+    </div>
+    
+    <div class="input-group">
+      <input type="password" id="password" placeholder="密码" autocomplete="current-password" required>
+      <span class="input-icon">Lock</span>
+    </div>
+    
+    <button onclick="login()" class="login-btn">立即登录</button>
+    
+    <div id="msg" style="margin-top:15px; min-height:24px; font-weight:500;"></div>
+  </div>
 </div>
 <!-- login end -->
 
